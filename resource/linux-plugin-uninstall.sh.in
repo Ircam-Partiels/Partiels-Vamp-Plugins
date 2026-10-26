@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# The uninstallation script of the plugin: it removes the files of the plugin
+# from the vamp directory of the user.
+
+VAMP_DIRECTORY="$HOME/vamp"
+
+# Remove the files of the plugin (the legacy library + cat files and the .vamp bundle).
+uninstall_plugin()
+{
+    rm -f "$1/$2.so" "$1/$2.cat"
+    rm -rf "$1/$2.vamp"
+}
+
+uninstall_plugin "${VAMP_DIRECTORY}" "@PLUGIN_NAME@"
+uninstall_plugin "${VAMP_DIRECTORY}" "@PVP_PLUGIN_ALT_NAME@"
+@PVP_PLUGIN_LEGACY_MODELS_COMMANDS@
+
+exit 0

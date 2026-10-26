@@ -1,0 +1,67 @@
+#!/bin/sh
+
+ThisPath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+PLUGINS="@PVP_PLUGINS_STRING@"
+
+# The plugins can be passed as arguments of the script (or all the plugins
+# with the option --all), otherwise the plugins are prompted one by one (with
+# a terminal) or all the plugins are installed (without a terminal).
+SELECTED=""
+if [ "$#" -gt 0 ]; then
+    if [ "$1" = "--all" ]; then
+        SELECTED="$PLUGINS"
+    else
+        for PLUGIN_ARGUMENT in "$@"; do
+            case " $PLUGINS " in
+                *" $PLUGIN_ARGUMENT "*)
+                    SELECTED="$SELECTED $PLUGIN_ARGUMENT"
+                    ;;
+                *)
+                    echo "Unknown plugin $PLUGIN_ARGUMENT"
+                    echo "Usage: $(basename "$0") [--all] | plugin1 plugin2 ..."
+                    exit 1
+                    ;;
+            esac
+        done
+    fi
+elif [ -t 0 ]; then
+    for PLUGIN_NAME in $PLUGINS; do
+        printf "Install %s? [Y/n] " "$PLUGIN_NAME"
+        read PLUGIN_ANSWER
+        case "$PLUGIN_ANSWER" in
+            [nN]*)
+                ;;
+            *)
+                SELECTED="$SELECTED $PLUGIN_NAME"
+                ;;
+        esac
+    done
+else
+    SELECTED="$PLUGINS"
+fi
+
+if [ -z "$SELECTED" ]; then
+    echo "No plugin selected."
+    exit 0
+fi
+
+mkdir -p "$HOME/vamp"
+
+# Remove the previous versions of a plugin (the legacy library + cat files and the .vamp bundle).
+clean_plugin()
+{
+    rm -f "$1/$2.so" "$1/$2.cat"
+    rm -rf "$1/$2.vamp"
+}
+
+plugin_selected()
+{
+    case " $SELECTED " in
+        *" $1 "*)
+            return 0
+            ;;
+    esac
+    return 1
+}
+
+@PVP_INSTALL_BLOCKS@

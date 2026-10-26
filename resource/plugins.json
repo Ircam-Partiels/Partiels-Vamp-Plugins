@@ -1,0 +1,169 @@
+[
+  {
+    "identifier": "supervp",
+    "name": "SuperVP",
+    "maker": "Ircam",
+    "gitlabId": 629,
+    "ref": "7.0.0",
+    "description": "Analysis of the audio signal with the SuperVP engine (spectrogram, fundamental frequency and partials) by Axel Roebel and Frédéric Cornu, based on an initial version by Philippe Depalle.",
+    "features": [
+      "Fast Fourier Transform",
+      "Linear Predictive Coding",
+      "True Envelope",
+      "Reassigned Spectrum",
+      "Cepstrum",
+      "Feature Scoring",
+      "Primes Matching",
+      "Pitched Percussion",
+      "Voiced/Unvoiced",
+      "Formant LPC",
+      "Formant CED",
+      "Peak",
+      "Mask",
+      "Rd Shape",
+      "Transient Detection",
+      "Spectral Difference Positive",
+      "Spectral Difference Negative"
+    ],
+    "minOs": "10.13",
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "manuals": true
+  },
+  {
+    "identifier": "ircambeat",
+    "name": "IrcamBeat",
+    "maker": "Ircam",
+    "gitlabId": 705,
+    "ref": "3.0.0",
+    "description": "Beat and tempo detection and tracking based on the IrcamBeat library by Geoffroy Peeters and Frédéric Cornu.",
+    "features": [
+      "Beat Detection",
+      "Mean Tempo Estimate"
+    ],
+    "minOs": "10.13",
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "manuals": true
+  },
+  {
+    "identifier": "ircamdescriptor",
+    "name": "IrcamDescriptor",
+    "maker": "Ircam",
+    "gitlabId": 714,
+    "ref": "2.0.0",
+    "description": "Extraction of the spectral and temporal audio descriptors based on the IrcamDescriptor library by Geoffroy Peeters and Frédéric Cornu.",
+    "features": [
+      "Perceptual Descriptor",
+      "Spectral Descriptor"
+    ],
+    "minOs": "10.13",
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "manuals": true
+  },
+  {
+    "identifier": "pm2",
+    "name": "Pm2",
+    "maker": "Ircam",
+    "gitlabId": 736,
+    "ref": "5.0.0",
+    "description": "Analysis and tracking of the harmonic and inharmonic partials of the audio signal with the SuperVP engine by Axel Roebel and Frédéric Cornu, based on an initial version by Philippe Depalle.",
+    "features": [
+      "Harmonic Partial",
+      "Inharmonic Partial",
+      "Chord Partial"
+    ],
+    "minOs": "10.13",
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ],
+    "manuals": true
+  },
+  {
+    "identifier": "fcn",
+    "name": "Fcn",
+    "maker": "Ircam",
+    "gitlabId": 1008,
+    "ref": "5.0.0",
+    "description": "Monophonic pitch (F0) estimation of speech signals with deep learning models by Luc Ardaillon and Axel Roebel.",
+    "features": [
+      "FCN"
+    ],
+    "minOs": "10.15",
+    "architectures": [
+      "x86_64",
+      "arm64"
+    ]
+  },
+  {
+    "identifier": "ircamvax",
+    "name": "VAX",
+    "maker": "Ircam",
+    "gitlabId": 1161,
+    "ref": "3.0.0",
+    "description": "Voice alignment based on the VAX (voice aligner) library by Guillaume Doras, Yann Teytaut and Axel Roebel.",
+    "features": [
+      "VAX - Aligner",
+      "VAX - Probability"
+    ],
+    "minOs": "13.3",
+    "architectures": [
+      "arm64"
+    ],
+    "legacyModels": "vaxmodels"
+  },
+  {
+    "identifier": "ircamwhisper",
+    "name": "Whisper",
+    "maker": "Ircam",
+    "repository": "Ircam-Partiels/whisper-vamp-plugin",
+    "ref": "5.0.0",
+    "description": "Speech recognition generating markers for the words and the syllables of the audio stream with the OpenAI Whisper models.",
+    "features": [
+      "Whisper"
+    ],
+    "minOs": "13.3",
+    "architectures": [
+      "arm64"
+    ],
+    "legacyModels": "whispermodels"
+  },
+  {
+    "identifier": "ircamcrepe",
+    "name": "Crepe",
+    "maker": "Ircam",
+    "repository": "Ircam-Partiels/crepe-vamp-plugin",
+    "ref": "4.1.0",
+    "description": "Monophonic pitch tracking based on the CREPE deep convolutional neural network by Jong Wook Kim, Justin Salamon, Peter Li and Juan Pablo Bello.",
+    "features": [
+      "Crepe"
+    ],
+    "minOs": "13.3",
+    "architectures": [
+      "arm64"
+    ]
+  },
+  {
+    "identifier": "ircamipt",
+    "name": "IPT",
+    "maker": "Ircam",
+    "repository": "Ircam-Partiels/ipt-vamp-plugin",
+    "ref": "2.1.0",
+    "description": "Recognition of the instrumental playing techniques with deep learning CNN models by Nicolas Brochec, Joakim Borg and Marco Fiorini.",
+    "features": [
+      "IPT"
+    ],
+    "minOs": "15.0",
+    "architectures": [
+      "arm64"
+    ]
+  }
+]

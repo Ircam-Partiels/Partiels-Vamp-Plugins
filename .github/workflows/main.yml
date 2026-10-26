@@ -1,0 +1,294 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  # Checks whether to create a release: checks if event is a tag
+  is_release: ${{ startsWith(github.ref, 'refs/tags/') }}
+  # Tag name if triggered by a tag, empty otherwise
+  version_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+  # Checks whether the secrets are accessible (the private token of the
+  # Ircam Forge 2, the Apple certificates): always true except for the pull
+  # requests from a forked repository, which do not have access to the
+  # secrets: the packages are then generated without signature and the
+  # plugins hosted on the Ircam Forge 2 can only be retrieved from the cache
+  # of the plugins (the generation fails if they are not cached).
+  has_secrets: ${{ github.event_name != 'pull_request' || !github.event.pull_request.head.repo.fork }}
+  # Authenticates the requests of the GitHub API of the generation scripts
+  # (the latest release of the plugins hosted on GitHub), the unauthenticated
+  # requests are limited to 60 per hour.
+  GITHUB_TOKEN: ${{ github.token }}
+
+jobs:
+  # Packages, signs and notarizes the plugins for MacOS.
+  MacOS:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    # The plugins hosted on the Ircam Forge 2 are downloaded with the
+    # private token of the forge: without the token the generation of the
+    # packages cannot succeed, therefore the workflow fails.
+    - name: Check the forge token
+      if: ${{ env.has_secrets == 'true' }}
+      shell: bash
+      run: |
+        if [ -z "${{ secrets.FORGE_PRIVATE_TOKEN }}" ]; then
+          echo "The FORGE_PRIVATE_TOKEN secret is not defined: the plugins hosted on the Ircam Forge 2 cannot be downloaded."
+          exit 1
+        fi
+    # The downloaded plugins (more than 1.5 GB with the models of the deep
+    # learning plugins) are cached so that they are only downloaded again
+    # when the plugins.json file has changed.
+    - name: Cache the plugins
+      uses: actions/cache@v6
+      with:
+        path: plugins-cache
+        key: pvp-plugins-macos-${{ hashFiles('resource/plugins.json') }}
+        restore-keys: pvp-plugins-macos-
+    # The certificates (Developer ID Application and Developer ID Installer)
+    # are stored in base64 encoded .p12 files, they are imported in a
+    # dedicated keychain and the credentials of the notarization service are
+    # stored in the profile used by generate-packages.cmake.
+    - name: Prepare
+      if: ${{ env.has_secrets == 'true' }}
+      run: |
+        security create-keychain -p ${{ secrets.DEV_ID_PASSWORD }} buildagent
+        security unlock-keychain -p ${{ secrets.DEV_ID_PASSWORD }} buildagent
+        security set-keychain-settings -lut 21600 buildagent
+        security list-keychains -s buildagent && security default-keychain -s buildagent
+        echo ${{ secrets.DEV_ID_APP_CERT }} | base64 --decode > ./cert.p12
+        security import ./cert.p12 -P ${{ secrets.DEV_ID_PASSWORD }} -A -t cert -f pkcs12 -k buildagent -T /usr/bin/codesign -T /usr/bin/productbuild -T /usr/bin/pkgbuild >/dev/null
+        rm ./cert.p12
+        echo ${{ secrets.DEV_ID_INST_CERT }} | base64 --decode > ./cert.p12
+        security import ./cert.p12 -P ${{ secrets.DEV_ID_PASSWORD }} -A -t cert -f pkcs12 -k buildagent -T /usr/bin/codesign -T /usr/bin/productbuild -T /usr/bin/pkgbuild >/dev/null
+        rm ./cert.p12
+        security set-key-partition-list -S "apple-tool:,apple:,codesign:" -s -k ${{ secrets.DEV_ID_PASSWORD }} buildagent >/dev/null
+        xcrun notarytool store-credentials "notary-installer" --apple-id ${{ secrets.DEV_USER_APPLE_ID }} --team-id ${{ secrets.DEV_TEAM_APPLE_ID }} --password ${{ secrets.DEV_SPEC_APP_PASSWORD }} >/dev/null
+    - name: Generate the packages
+      shell: bash
+      run: cmake -DPRIVATE_TOKEN="${{ secrets.FORGE_PRIVATE_TOKEN }}" -DPVP_CACHE_DIRECTORY="${GITHUB_WORKSPACE}/plugins-cache" -DPVP_BUILD_TAG="${{ env.version_name }}" -P generate-packages.cmake
+    - name: Prepare the release assets
+      shell: bash
+      run: |
+        set -e
+        mkdir -p release
+        cp package/Uninstall.sh release/Uninstall-MacOS.sh
+        for PKG_PATH in package/*.pkg; do
+          PLUGIN_NAME=$(basename "${PKG_PATH}" .pkg)
+          if [ "${PLUGIN_NAME}" == "Partiels Vamp Plugins" ]; then
+            cp "${PKG_PATH}" "release/Partiels-Vamp-Plugins-MacOS.pkg"
+          else
+            cp "${PKG_PATH}" "release/${PLUGIN_NAME}-MacOS.pkg"
+          fi
+        done
+        ls -R release
+    - name: Artifact
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: Partiels-Vamp-Plugins-MacOS
+        path: package/
+        if-no-files-found: error
+    - name: Release assets
+      uses: actions/upload-artifact@v7.0.2
+      if: ${{ env.is_release == 'true' }}
+      with:
+        name: Release-MacOS
+        path: release/
+        if-no-files-found: error
+        retention-days: 1
+
+  # Packages the plugins for Windows.
+  Windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    - name: Check the forge token
+      if: ${{ env.has_secrets == 'true' }}
+      shell: bash
+      run: |
+        if [ -z "${{ secrets.FORGE_PRIVATE_TOKEN }}" ]; then
+          echo "The FORGE_PRIVATE_TOKEN secret is not defined: the plugins hosted on the Ircam Forge 2 cannot be downloaded."
+          exit 1
+        fi
+    - name: Cache the plugins
+      uses: actions/cache@v6
+      with:
+        path: plugins-cache
+        key: pvp-plugins-windows-${{ hashFiles('resource/plugins.json') }}
+        restore-keys: pvp-plugins-windows-
+    - name: Generate the packages
+      shell: bash
+      run: cmake -DPRIVATE_TOKEN="${{ secrets.FORGE_PRIVATE_TOKEN }}" -DPVP_CACHE_DIRECTORY="${GITHUB_WORKSPACE}/plugins-cache" -DPVP_BUILD_TAG="${{ env.version_name }}" -P generate-packages.cmake
+    - name: Prepare the release assets
+      shell: bash
+      run: |
+        set -e
+        mkdir -p release
+        for EXE_PATH in package/*.exe; do
+          PLUGIN_NAME=$(basename "${EXE_PATH}" -install.exe)
+          if [ "${PLUGIN_NAME}" == "Partiels Vamp Plugins" ]; then
+            cp "${EXE_PATH}" "release/Partiels-Vamp-Plugins-Windows.exe"
+          else
+            cp "${EXE_PATH}" "release/${PLUGIN_NAME}-Windows.exe"
+          fi
+        done
+        ls -R release
+    - name: Artifact
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: Partiels-Vamp-Plugins-Windows
+        path: package/
+        if-no-files-found: error
+    - name: Release assets
+      uses: actions/upload-artifact@v7.0.2
+      if: ${{ env.is_release == 'true' }}
+      with:
+        name: Release-Windows
+        path: release/
+        if-no-files-found: error
+        retention-days: 1
+
+  # Packages the plugins for Linux.
+  Linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    - name: Check the forge token
+      if: ${{ env.has_secrets == 'true' }}
+      run: |
+        if [ -z "${{ secrets.FORGE_PRIVATE_TOKEN }}" ]; then
+          echo "The FORGE_PRIVATE_TOKEN secret is not defined: the plugins hosted on the Ircam Forge 2 cannot be downloaded."
+          exit 1
+        fi
+    - name: Cache the plugins
+      uses: actions/cache@v6
+      with:
+        path: plugins-cache
+        key: pvp-plugins-linux-${{ hashFiles('resource/plugins.json') }}
+        restore-keys: pvp-plugins-linux-
+    - name: Generate the packages
+      run: cmake -DPRIVATE_TOKEN="${{ secrets.FORGE_PRIVATE_TOKEN }}" -DPVP_CACHE_DIRECTORY="${GITHUB_WORKSPACE}/plugins-cache" -DPVP_BUILD_TAG="${{ env.version_name }}" -P generate-packages.cmake
+    - name: Prepare the release assets
+      run: |
+        set -e
+        mkdir -p release
+        BUNDLE_EXCLUDES=()
+        for PLUGIN_PATH in package/Partiels-Vamp-Plugins-Linux/*; do
+          PLUGIN_NAME=$(basename "${PLUGIN_PATH}")
+          # The standalone installers are the directories that contain an
+          # Install.sh script (the .vamp bundles of the plugins are also
+          # directories of the package).
+          if [ -f "${PLUGIN_PATH}/Install.sh" ]; then
+            cp -R "${PLUGIN_PATH}" "release/${PLUGIN_NAME}"
+            (cd release && zip -r "${PLUGIN_NAME}-Linux.zip" "${PLUGIN_NAME}" && rm -Rf "${PLUGIN_NAME}")
+            BUNDLE_EXCLUDES+=(-x "Partiels-Vamp-Plugins-Linux/${PLUGIN_NAME}/*")
+          fi
+        done
+        # The bundle installer does not contain the standalone installers.
+        (cd package && zip -r ../release/Partiels-Vamp-Plugins-Linux.zip Partiels-Vamp-Plugins-Linux "${BUNDLE_EXCLUDES[@]}")
+        ls -R release
+    - name: Artifact
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: Partiels-Vamp-Plugins-Linux
+        path: package/Partiels-Vamp-Plugins-Linux/
+        if-no-files-found: error
+    - name: Release assets
+      uses: actions/upload-artifact@v7.0.2
+      if: ${{ env.is_release == 'true' }}
+      with:
+        name: Release-Linux
+        path: release/
+        if-no-files-found: error
+        retention-days: 1
+
+  # Retrieves the manuals of the plugins (from the Doc artifacts of the
+  # Ircam Forge 2) and generates the plugin list (Partiels-Plugins.json)
+  # that automates the update of the plugins in the plugin manager of
+  # Partiels.
+  Doc:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+    - name: Check the forge token
+      if: ${{ env.has_secrets == 'true' }}
+      run: |
+        if [ -z "${{ secrets.FORGE_PRIVATE_TOKEN }}" ]; then
+          echo "The FORGE_PRIVATE_TOKEN secret is not defined: the plugins hosted on the Ircam Forge 2 cannot be downloaded."
+          exit 1
+        fi
+    - name: Cache the plugins
+      uses: actions/cache@v6
+      with:
+        path: plugins-cache
+        key: pvp-plugins-doc-${{ hashFiles('resource/plugins.json') }}
+        restore-keys: pvp-plugins-doc-
+    - name: Generate the manuals
+      run: cmake -DPVP_GENERATE_MANUALS=ON -DPRIVATE_TOKEN="${{ secrets.FORGE_PRIVATE_TOKEN }}" -DPVP_CACHE_DIRECTORY="${GITHUB_WORKSPACE}/plugins-cache" -DPVP_BUILD_TAG="${{ env.version_name }}" -P generate-packages.cmake
+    - name: Generate the plugin list
+      if: env.is_release == 'true'
+      run: cmake -DPVP_BUILD_TAG="${{ env.version_name }}" -DPVP_REPOSITORY="${{ github.repository }}" -P generate-plugin-list.cmake
+    - name: Prepare the release assets
+      run: |
+        set -e
+        mkdir -p Doc release
+        cp -R package/Manuals Doc/Manuals
+        if [ -f Partiels-Plugins.json ]; then
+          cp Partiels-Plugins.json Doc/Partiels-Plugins.json
+        fi
+        (cd Doc && zip -r ../release/Partiels-Vamp-Plugins-Manuals.zip Manuals)
+        if [ -f Doc/Partiels-Plugins.json ]; then
+          cp Doc/Partiels-Plugins.json release/Partiels-Plugins.json
+        fi
+        ls -R Doc release
+    - name: Artifact
+      uses: actions/upload-artifact@v7.0.2
+      with:
+        name: Partiels-Vamp-Plugins-Doc
+        path: Doc/
+        if-no-files-found: error
+    - name: Release assets
+      uses: actions/upload-artifact@v7.0.2
+      if: ${{ env.is_release == 'true' }}
+      with:
+        name: Release-Doc
+        path: release/
+        if-no-files-found: error
+        retention-days: 1
+
+  # Creates the draft release with the assets of all the jobs. The release is
+  # created by a single job: when several jobs create the same draft release
+  # concurrently, the draft releases are duplicated (a draft release cannot be
+  # retrieved by its tag) and the assets are spread over them.
+  Release:
+    # The env context is not available in the condition of a job, therefore
+    # the condition of is_release is repeated.
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    needs: [MacOS, Windows, Linux, Doc]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Download the release assets
+      uses: actions/download-artifact@v8.0.2
+      with:
+        pattern: Release-*
+        path: release
+        merge-multiple: true
+    - name: List the release assets
+      run: ls -lR release
+    - name: Release
+      uses: softprops/action-gh-release@v3.0.3
+      with:
+        draft: true
+        prerelease: true
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        files: release/*

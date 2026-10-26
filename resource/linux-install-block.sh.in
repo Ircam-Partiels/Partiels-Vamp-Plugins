@@ -1,0 +1,4 @@
+if plugin_selected "@PLUGIN_NAME@"; then
+@PVP_PLUGIN_COMMANDS@
+fi
+

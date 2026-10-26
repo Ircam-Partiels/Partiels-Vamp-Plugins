@@ -1,0 +1,13 @@
+#!/bin/sh
+
+ThisPath="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+mkdir -p "$HOME/vamp"
+
+# Remove the previous versions of the plugin (the legacy library + cat files and the .vamp bundle).
+clean_plugin()
+{
+    rm -f "$1/$2.so" "$1/$2.cat"
+    rm -rf "$1/$2.vamp"
+}
+
+@PVP_PLUGIN_COMMANDS@

@@ -1,0 +1,17 @@
+build
+package
+plugins-cache
+Linux
+MacOS
+Windows
+Manuals
+Doc
+*.pkg
+*.exe
+*.zip
+*.so
+*.dylib
+*.dll
+*.cat
+Partiels-Plugins.json
+.DS_Store

@@ -1,0 +1,6 @@
+if plugin_selected "@PLUGIN_NAME@"; then
+    uninstall_plugin "${VAMP_DIRECTORY}" "@PLUGIN_NAME@" "@PVP_PLUGIN_UID@"
+    uninstall_plugin "${VAMP_DIRECTORY}" "@PVP_PLUGIN_ALT_NAME@" "@PVP_PLUGIN_UID@"
+@PVP_PLUGIN_LEGACY_MODELS_COMMANDS@
+fi
+
