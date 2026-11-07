@@ -69,11 +69,11 @@
     "manuals": true
   },
   {
-    "identifier": "pm2",
+    "identifier": "ircampm2",
     "name": "Pm2",
     "maker": "Ircam",
     "gitlabId": 736,
-    "ref": "5.0.0",
+    "ref": "6.0.0",
     "description": "Analysis and tracking of the harmonic and inharmonic partials of the audio signal with the SuperVP engine by Axel Roebel and Frédéric Cornu, based on an initial version by Philippe Depalle.",
     "features": [
       "Harmonic Partial",
@@ -85,7 +85,8 @@
       "x86_64",
       "arm64"
     ],
-    "manuals": true
+    "manuals": true,
+    "manualsJob": "Build::Doc"
   },
   {
     "identifier": "fcn",
