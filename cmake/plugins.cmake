@@ -12,7 +12,9 @@
 #  - ${<Plugin>_DESCRIPTION}: the description used in the About file,
 #  - ${<Plugin>_MIN_OS}: the minimum macOS version of the plugin,
 #  - ${<Plugin>_ARCHITECTURES}: the macOS architectures supported by the plugin,
-#  - ${<Plugin>_MANUALS}: the plugin has a manual (if any).
+#  - ${<Plugin>_MANUALS}: the plugin has a manual (if any),
+#  - ${<Plugin>_MANUALS_JOB}: the job of the Ircam Forge 2 whose artifact
+#    contains the manual (Doc by default).
 # The metadata used by the plugin manager of Partiels (the identifier, the
 # maker and the features of each plugin) are defined in the plugins.json
 # file and used by generate-plugin-list.cmake to generate the plugin list.
@@ -49,6 +51,11 @@ string(JSON PLUGIN_MANUALS ERROR_VARIABLE PLUGIN_MANUALS_ERROR GET "${PVP_PLUGIN
 if(NOT PLUGIN_MANUALS_ERROR)
   set(${PLUGIN_NAME}_MANUALS "${PLUGIN_MANUALS}")
 endif()
+string(JSON PLUGIN_MANUALS_JOB ERROR_VARIABLE PLUGIN_MANUALS_JOB_ERROR GET "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "manualsJob")
+if(PLUGIN_MANUALS_JOB_ERROR)
+  set(PLUGIN_MANUALS_JOB "Doc")
+endif()
+set(${PLUGIN_NAME}_MANUALS_JOB "${PLUGIN_MANUALS_JOB}")
 string(JSON PLUGIN_LEGACY_MODELS ERROR_VARIABLE PLUGIN_LEGACY_MODELS_ERROR GET "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "legacyModels")
 if(NOT PLUGIN_LEGACY_MODELS_ERROR)
   set(${PLUGIN_NAME}_LEGACY_MODELS "${PLUGIN_LEGACY_MODELS}")
