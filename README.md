@@ -21,6 +21,7 @@ The properties of the plugins are defined in the [resource/plugins.json](resourc
 | `minOs` | The minimum MacOS version of the plugin (used to propose the plugin in the MacOS installer). |
 | `architectures` | The architectures supported by the plugin (the plugins that do not support `x86_64` are only proposed on the Apple Silicon machines). |
 | `manuals` | `true` if the plugin has a manual (retrieved from the `Doc` artifact on the Ircam Forge 2). |
+| `manualsJob` | The job of the Ircam Forge 2 whose artifact contains the manual, if it is not `Doc` (e.g. `Build::Doc`). |
 | `legacyModels` | The name of the directory where the previous versions of the plugin installed their models outside of the Vamp directory (e.g. `vaxmodels`), if any. The directory (in `~/.config/Ircam` on Linux, `/Library/Application Support/Ircam` on MacOS and `C:\ProgramData\Ircam` on Windows) is removed at the installation and at the uninstallation of the plugin. |
 
 The ref of a plugin can be overridden on the command line (e.g. `-DSUPERVP_REF=7.0.1`).
