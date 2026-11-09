@@ -285,7 +285,7 @@ jobs:
     - name: List the release assets
       run: ls -lR release
     - name: Release
-      uses: softprops/action-gh-release@v3.0.3
+      uses: softprops/action-gh-release@v3.0.4
       with:
         draft: true
         prerelease: true
