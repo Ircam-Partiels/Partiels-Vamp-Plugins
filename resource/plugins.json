@@ -166,5 +166,20 @@
     "architectures": [
       "arm64"
     ]
+  },
+  {
+    "identifier": "ircambasicpitch",
+    "name": "BasicPitch",
+    "maker": "Ircam",
+    "repository": "Ircam-Partiels/basic-pitch-vamp-plugin",
+    "ref": "1.0.0",
+    "description": "Automatic music transcription (polyphonic pitch and note detection) based on the Basic Pitch lightweight neural network by Spotify's Audio Intelligence Lab.",
+    "features": [
+      "Basic Pitch"
+    ],
+    "minOs": "13.3",
+    "architectures": [
+      "arm64"
+    ]
   }
 ]
