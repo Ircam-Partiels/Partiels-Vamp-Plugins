@@ -1,10 +1,13 @@
 [
   {
-    "identifier": "supervp",
+    "identifier": "ircamsvp",
+    "legacyIdentifiers": [
+      "supervp"
+    ],
     "name": "SuperVP",
     "maker": "Ircam",
     "gitlabId": 629,
-    "ref": "7.0.0",
+    "ref": "8.0.0",
     "description": "Analysis of the audio signal with the SuperVP engine (spectrogram, fundamental frequency and partials) by Axel Roebel and Frédéric Cornu, based on an initial version by Philippe Depalle.",
     "features": [
       "Fast Fourier Transform",
