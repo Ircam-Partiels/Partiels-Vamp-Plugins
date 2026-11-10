@@ -1,9 +1,19 @@
 # The helpers shared by the package generations.
+# Retrieve the name of a plugin in lowercase without the characters that are
+# not alphanumeric (e.g. My-Plugin and myplugin), used for the .vamp
+# bundle and for the identifiers of the installers (Inno Setup components).
+function(pvp_get_lower_name plugin_name out_name)
+string(TOLOWER "${plugin_name}" PLUGIN_NAME_LOWER)
+string(REGEX REPLACE "[^a-z0-9]" "" PLUGIN_NAME_LOWER "${PLUGIN_NAME_LOWER}")
+set(${out_name} "${PLUGIN_NAME_LOWER}" PARENT_SCOPE)
+endfunction()
+
 # Retrieve the names under which the versions of a plugin can have been installed:
 # the legacy name of the plugin (library + cat files) and the name formatted
-# for the .vamp bundle (e.g. IrcamBeat and ircambeat, IPT and ircamipt).
+# for the .vamp bundle (e.g. IrcamBeat and ircambeat, IPT and ircamipt,
+# BasicPitch and ircambasicpitch).
 function(pvp_get_install_names plugin_name out_names)
-string(TOLOWER "${plugin_name}" PLUGIN_NAME_LOWER)
+pvp_get_lower_name("${plugin_name}" PLUGIN_NAME_LOWER)
 set(INSTALL_NAMES "${plugin_name}")
 string(FIND "${PLUGIN_NAME_LOWER}" "ircam" IRCAM_POSITION)
 if(IRCAM_POSITION EQUAL 0)
