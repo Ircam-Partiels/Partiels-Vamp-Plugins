@@ -54,7 +54,7 @@ The continuous integration is based on [GitHub Actions](https://github.com/featu
 | `Partiels-Vamp-Plugins-Manuals.zip` | The manuals of the plugins. |
 | `Partiels-Plugins.json` | The plugin list used by the plugin manager of Partiels. |
 
-The names of the per-plugin installers follow the `<name>-<os>` convention used by the Whisper, Crepe and IPT plugin repositories. Each job publishes one artifact (`Partiels-Vamp-Plugins-<os>` or `Partiels-Vamp-Plugins-Doc`) that contains all the packages and installers of its kind at its root (the downloaded artifacts are zipped automatically by GitHub). The bundle installers (that install all the plugins) are published as artifacts and not as release assets: GitHub limits the size of the release assets to 2 GB and the bundle installers are bigger because they contain the models of all the plugins.
+The names of the per-plugin installers follow the `<name>-<os>` convention used by the Whisper, Crepe, IPT and BasicPitch plugin repositories. Each job publishes one artifact (`Partiels-Vamp-Plugins-<os>` or `Partiels-Vamp-Plugins-Doc`) that contains all the packages and installers of its kind at its root (the downloaded artifacts are zipped automatically by GitHub). The bundle installers (that install all the plugins) are published as artifacts and not as release assets: GitHub limits the size of the release assets to 2 GB and the bundle installers are bigger because they contain the models of all the plugins.
 
 ### The secrets
 
@@ -109,3 +109,4 @@ The plugins rely on models and libraries developed by their respective authors:
 - Crepe: CREPE model by Jong Wook Kim, Justin Salamon, Peter Li and Juan Pablo Bello.
 - IPT: deep learning CNN models by Nicolas Brochec, Joakim Borg and Marco Fiorini.
 - Whisper: Whisper models by OpenAI.
+- BasicPitch: Basic Pitch model by Spotify's Audio Intelligence Lab.
