@@ -4,12 +4,11 @@
 ;  - MyPluginVerName: the version of the plugin (e.g. 5.0.0), the installer
 ;    is versioned with the version of the plugin (and not with the version
 ;    of the bundle of the plugins).
-;  - MyPluginAltName: the alternative (ircam-formatted) name of the plugin (e.g. ircamcrepe).
 ;  - MyPluginBundleName: the name of the .vamp bundle of the plugin including the extension (e.g. ircamcrepe.vamp),
 ;    only defined if the plugin is distributed as a bundle (otherwise the legacy
 ;    library and cat files of the plugin are used).
-;  - MyPluginLegacyModels: the directory of the models of the previous versions of the plugin
-;    in the ProgramData\Ircam directory (e.g. whispermodels), only defined if the plugin has legacy models.
+; The [InstallDelete] entries of the plugin are generated in the
+; <MyPluginName>-InstallDelete.iss file of the package folder.
 #define MyAppName "Partiels Vamp Plugins"
 #define MyAppPublisher "Ircam"
 #define MyAppURL "www.ircam.fr"
@@ -42,17 +41,10 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [InstallDelete]
 ; The legacy versions (library + cat files) and the .vamp bundles of the plugin are removed before the installation.
-; The plugin can have been installed with its legacy name (e.g. Whisper) or with the ircam-formatted name (e.g. ircamwhisper).
-Type: files; Name: "{app}\{#MyPluginName}.dll"
-Type: files; Name: "{app}\{#MyPluginName}.cat"
-Type: filesandordirs; Name: "{app}\{#MyPluginName}.vamp"
-Type: files; Name: "{app}\{#MyPluginAltName}.dll"
-Type: files; Name: "{app}\{#MyPluginAltName}.cat"
-Type: filesandordirs; Name: "{app}\{#MyPluginAltName}.vamp"
-#ifdef MyPluginLegacyModels
-; The models of the previous versions of the plugin were installed outside of the Vamp directory.
-Type: filesandordirs; Name: "{commonappdata}\Ircam\{#MyPluginLegacyModels}"
-#endif
+; The plugin can have been installed with its legacy name (e.g. SuperVP), with its identifier (e.g. ircamsvp)
+; or with the identifiers of its previous versions (e.g. supervp). The models of the previous versions of the
+; plugin installed outside of the Vamp directory (e.g. whispermodels in ProgramData\Ircam) are also removed.
+#include MyPackageFolder + "/" + MyPluginName + "-InstallDelete.iss"
 
 [Files]
 #ifdef MyPluginBundleName

@@ -1,7 +1,7 @@
 # The helpers shared by the package generations.
 # Retrieve the name of a plugin in lowercase without the characters that are
-# not alphanumeric (e.g. My-Plugin and myplugin), used for the .vamp
-# bundle and for the identifiers of the installers (Inno Setup components).
+# not alphanumeric (e.g. My-Plugin and myplugin), used for the identifiers of
+# the installers (Inno Setup components).
 function(pvp_get_lower_name plugin_name out_name)
 string(TOLOWER "${plugin_name}" PLUGIN_NAME_LOWER)
 string(REGEX REPLACE "[^a-z0-9]" "" PLUGIN_NAME_LOWER "${PLUGIN_NAME_LOWER}")
@@ -9,19 +9,40 @@ set(${out_name} "${PLUGIN_NAME_LOWER}" PARENT_SCOPE)
 endfunction()
 
 # Retrieve the names under which the versions of a plugin can have been installed:
-# the legacy name of the plugin (library + cat files) and the name formatted
-# for the .vamp bundle (e.g. IrcamBeat and ircambeat, IPT and ircamipt,
-# BasicPitch and ircambasicpitch).
+# the legacy name of the plugin (library + cat files), the identifier of the
+# plugin, which is the name of the .vamp bundle (and of the library of the plugin,
+# hence the prefix of the plugin keys) that can't be deduced from the name of the
+# plugin (e.g. SuperVP and ircamsvp, IrcamBeat and ircambeat, IPT and ircamipt),
+# and the identifiers of the previous versions of the plugin (e.g. supervp).
 function(pvp_get_install_names plugin_name out_names)
-pvp_get_lower_name("${plugin_name}" PLUGIN_NAME_LOWER)
-set(INSTALL_NAMES "${plugin_name}")
-string(FIND "${PLUGIN_NAME_LOWER}" "ircam" IRCAM_POSITION)
-if(IRCAM_POSITION EQUAL 0)
-  list(APPEND INSTALL_NAMES "${PLUGIN_NAME_LOWER}")
-else()
-  list(APPEND INSTALL_NAMES "ircam${PLUGIN_NAME_LOWER}")
+if("${${plugin_name}_IDENTIFIER}" STREQUAL "")
+  message(FATAL_ERROR "The identifier of " ${plugin_name} " is not defined.")
 endif()
+set(INSTALL_NAMES "${plugin_name}" "${${plugin_name}_IDENTIFIER}" ${${plugin_name}_LEGACY_IDENTIFIERS})
+list(REMOVE_DUPLICATES INSTALL_NAMES)
 set(${out_names} "${INSTALL_NAMES}" PARENT_SCOPE)
+endfunction()
+
+# Check that the .vamp bundle of a plugin (if any) is named after the
+# identifier of the plugin, otherwise the bundle would not be removed by the
+# next installations and by the uninstallation of the plugin.
+function(pvp_check_bundle_name plugin_name bundle_name)
+if(NOT bundle_name STREQUAL "" AND NOT bundle_name STREQUAL "${${plugin_name}_IDENTIFIER}.vamp")
+  message(FATAL_ERROR "The bundle ${bundle_name} of ${plugin_name} doesn't match its identifier ${${plugin_name}_IDENTIFIER} (see resource/plugins.json).")
+endif()
+endfunction()
+
+# The shell commands that remove the files of a plugin under all the names
+# under which it can have been installed (see pvp_get_install_names), with
+# the given shell function (e.g. clean_plugin or uninstall_plugin) called
+# with the given directory, the install name and the extra arguments.
+function(pvp_get_remove_commands plugin_name function_name directory extra_arguments out_commands)
+pvp_get_install_names("${plugin_name}" PLUGIN_INSTALL_NAMES)
+set(COMMANDS "")
+foreach(PLUGIN_INSTALL_NAME ${PLUGIN_INSTALL_NAMES})
+  string(APPEND COMMANDS "    ${function_name} \"${directory}\" \"${PLUGIN_INSTALL_NAME}\"${extra_arguments}\n")
+endforeach()
+set(${out_commands} "${COMMANDS}" PARENT_SCOPE)
 endfunction()
 
 # Copy files with a specific extension package

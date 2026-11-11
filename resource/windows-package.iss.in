@@ -38,7 +38,8 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [InstallDelete]
 ; The legacy versions (library + cat files) and the .vamp bundles of the plugins are removed before the installation.
-; Each plugin can have been installed with its legacy name (e.g. SuperVP) or with the ircam-formatted name (e.g. ircamsupervp).
+; Each plugin can have been installed with its legacy name (e.g. SuperVP), with its identifier (e.g. ircamsvp)
+; or with the identifiers of its previous versions (e.g. supervp).
 ; The entries are only processed for the components selected by the user.
 @PVP_INSTALL_DELETES@
 

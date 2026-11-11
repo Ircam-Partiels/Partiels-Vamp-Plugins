@@ -10,7 +10,8 @@ The properties of the plugins are defined in the [resource/plugins.json](resourc
 
 | Field | Description |
 | --- | --- |
-| `identifier` | The identifier of the plugin library used by the plugin manager of Partiels (e.g. `supervp`). |
+| `identifier` | The identifier of the plugin library: the name of the `.vamp` bundle (e.g. `ircamsvp`), hence the prefix of the plugin keys used by the plugin manager of Partiels to detect the updates. The generation fails if the `.vamp` bundle of the plugin is not named after the identifier. The previous versions of the plugin installed under this name, under the legacy identifiers or under the legacy name of the plugin (the `name` field, e.g. `SuperVP.dylib` and `SuperVP.cat`) are removed at the installation and at the uninstallation. |
+| `legacyIdentifiers` | The identifiers of the previous versions of the plugin, as a list (e.g. `["supervp"]`), if any. The files of the plugin installed under these names (the library, the cat file and the `.vamp` bundle) are removed at the installation and at the uninstallation of the plugin. |
 | `name` | The name of the plugin (e.g. `SuperVP`). |
 | `maker` | The maker of the plugin (e.g. `Ircam`). |
 | `gitlabId` | The project id on the [Ircam Forge 2](https://forge-2.ircam.fr), if the plugin is hosted there. The binaries are retrieved from the `Build::Windows`, `Build::MacOS` and `Build::Linux` artifacts of the given ref (a branch or a tag). |

@@ -14,7 +14,11 @@
 #  - ${<Plugin>_ARCHITECTURES}: the macOS architectures supported by the plugin,
 #  - ${<Plugin>_MANUALS}: the plugin has a manual (if any),
 #  - ${<Plugin>_MANUALS_JOB}: the job of the Ircam Forge 2 whose artifact
-#    contains the manual (Doc by default).
+#    contains the manual (Doc by default),
+#  - ${<Plugin>_LEGACY_MODELS}: the directory of the models of the previous
+#    versions of the plugin outside of the Vamp directory (if any),
+#  - ${<Plugin>_LEGACY_IDENTIFIERS}: the identifiers of the previous versions
+#    of the plugin (if any), whose files are removed at the installation.
 # The metadata used by the plugin manager of Partiels (the identifier, the
 # maker and the features of each plugin) are defined in the plugins.json
 # file and used by generate-plugin-list.cmake to generate the plugin list.
@@ -60,6 +64,16 @@ string(JSON PLUGIN_LEGACY_MODELS ERROR_VARIABLE PLUGIN_LEGACY_MODELS_ERROR GET "
 if(NOT PLUGIN_LEGACY_MODELS_ERROR)
   set(${PLUGIN_NAME}_LEGACY_MODELS "${PLUGIN_LEGACY_MODELS}")
 endif()
+set(PLUGIN_LEGACY_IDENTIFIERS "")
+string(JSON PLUGIN_LEGACY_IDENTIFIERS_COUNT ERROR_VARIABLE PLUGIN_LEGACY_IDENTIFIERS_ERROR LENGTH "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "legacyIdentifiers")
+if(NOT PLUGIN_LEGACY_IDENTIFIERS_ERROR AND PLUGIN_LEGACY_IDENTIFIERS_COUNT GREATER 0)
+  math(EXPR PLUGIN_LEGACY_IDENTIFIERS_LAST "${PLUGIN_LEGACY_IDENTIFIERS_COUNT} - 1")
+  foreach(PLUGIN_LEGACY_IDENTIFIER_INDEX RANGE ${PLUGIN_LEGACY_IDENTIFIERS_LAST})
+    string(JSON PLUGIN_LEGACY_IDENTIFIER GET "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "legacyIdentifiers" "${PLUGIN_LEGACY_IDENTIFIER_INDEX}")
+    list(APPEND PLUGIN_LEGACY_IDENTIFIERS "${PLUGIN_LEGACY_IDENTIFIER}")
+  endforeach()
+endif()
+set(${PLUGIN_NAME}_LEGACY_IDENTIFIERS "${PLUGIN_LEGACY_IDENTIFIERS}")
 
 string(JSON PLUGIN_ARCHITECTURES_COUNT LENGTH "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "architectures")
 math(EXPR PLUGIN_ARCHITECTURES_LAST "${PLUGIN_ARCHITECTURES_COUNT} - 1")

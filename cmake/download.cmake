@@ -132,6 +132,7 @@ function(pvp_extract_bundle plugin_name os_name directory out_bundle_name)
   foreach(BUNDLE_PATH ${BUNDLE_PATHS})
     get_filename_component(BUNDLE_NAME "${BUNDLE_PATH}" NAME)
   endforeach()
+  pvp_check_bundle_name("${plugin_name}" "${BUNDLE_NAME}")
   set(${out_bundle_name} "${BUNDLE_NAME}" PARENT_SCOPE)
 endfunction()
 

@@ -12,6 +12,27 @@ set(TEMP_DIRECTORY "${WORKING_DIRECTORY}/Temp")
 
 pvp_write_about_header("${WORKING_DIRECTORY}")
 
+# The [InstallDelete] entries of a plugin that remove its previous versions
+# (the legacy library + cat files and the .vamp bundle under all the names
+# under which the plugin can have been installed, see pvp_get_install_names)
+# and the models of the previous versions of the plugin installed outside of
+# the Vamp directory (e.g. the VAX and Whisper models in the ProgramData
+# directory). The suffix is appended to each entry (e.g. the component of the
+# plugin in the bundle installer).
+function(pvp_get_install_deletes plugin_name suffix out_deletes)
+  pvp_get_install_names("${plugin_name}" PLUGIN_INSTALL_NAMES)
+  set(DELETES "")
+  foreach(PLUGIN_INSTALL_NAME ${PLUGIN_INSTALL_NAMES})
+    string(APPEND DELETES "Type: files; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.dll\"${suffix}\n")
+    string(APPEND DELETES "Type: files; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.cat\"${suffix}\n")
+    string(APPEND DELETES "Type: filesandordirs; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.vamp\"${suffix}\n")
+  endforeach()
+  if(DEFINED ${plugin_name}_LEGACY_MODELS AND NOT "${${plugin_name}_LEGACY_MODELS}" STREQUAL "")
+    string(APPEND DELETES "Type: filesandordirs; Name: \"{commonappdata}\\Ircam\\${${plugin_name}_LEGACY_MODELS}\"${suffix}\n")
+  endif()
+  set(${out_deletes} "${DELETES}" PARENT_SCOPE)
+endfunction()
+
 function(pvp_finalize_plugin plugin_name plugin_version)
   pvp_append_about(${plugin_name} ${plugin_version} "${WORKING_DIRECTORY}/About.txt")
   pvp_extract_bundle("${plugin_name}" "${OS_NAME}" "${TEMP_DIRECTORY}" BUNDLE_NAME)
@@ -21,10 +42,7 @@ function(pvp_finalize_plugin plugin_name plugin_version)
     pvp_copy_files("${TEMP_DIRECTORY}" "dll" "${WORKING_DIRECTORY}")
     pvp_copy_files("${TEMP_DIRECTORY}" "cat" "${WORKING_DIRECTORY}")
   endif()
-  pvp_get_install_names(${plugin_name} PLUGIN_INSTALL_NAMES)
-  list(GET PLUGIN_INSTALL_NAMES 1 PLUGIN_ALT_NAME)
   set(${plugin_name}_BUNDLE_NAME "${BUNDLE_NAME}" PARENT_SCOPE)
-  set(${plugin_name}_ALT_NAME "${PLUGIN_ALT_NAME}" PARENT_SCOPE)
   set(${plugin_name}_PLUGIN_VERSION "${plugin_version}" PARENT_SCOPE)
   list(APPEND PVP_PLUGINS ${plugin_name})
   set(PVP_PLUGINS "${PVP_PLUGINS}" PARENT_SCOPE)
@@ -58,18 +76,8 @@ set(PVP_FILES "")
 foreach(PLUGIN_NAME ${PVP_PLUGINS})
   pvp_get_lower_name("${PLUGIN_NAME}" COMPONENT_NAME)
   string(APPEND PVP_COMPONENTS "Name: \"${COMPONENT_NAME}\"; Description: \"${PLUGIN_NAME}\"; Types: full\n")
-  pvp_get_install_names("${PLUGIN_NAME}" PLUGIN_INSTALL_NAMES)
-  foreach(PLUGIN_INSTALL_NAME ${PLUGIN_INSTALL_NAMES})
-    string(APPEND PVP_INSTALL_DELETES "Type: files; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.dll\"; Components: ${COMPONENT_NAME}\n")
-    string(APPEND PVP_INSTALL_DELETES "Type: files; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.cat\"; Components: ${COMPONENT_NAME}\n")
-    string(APPEND PVP_INSTALL_DELETES "Type: filesandordirs; Name: \"{app}\\${PLUGIN_INSTALL_NAME}.vamp\"; Components: ${COMPONENT_NAME}\n")
-  endforeach()
-  # The models of the previous versions of the plugins were installed outside
-  # of the Vamp directory (e.g. the VAX and Whisper models in the ProgramData
-  # directory), they are removed at the installation of the plugin.
-  if(DEFINED ${PLUGIN_NAME}_LEGACY_MODELS AND NOT "${${PLUGIN_NAME}_LEGACY_MODELS}" STREQUAL "")
-    string(APPEND PVP_INSTALL_DELETES "Type: filesandordirs; Name: \"{commonappdata}\\Ircam\\${${PLUGIN_NAME}_LEGACY_MODELS}\"; Components: ${COMPONENT_NAME}\n")
-  endif()
+  pvp_get_install_deletes("${PLUGIN_NAME}" "; Components: ${COMPONENT_NAME}" PLUGIN_INSTALL_DELETES)
+  string(APPEND PVP_INSTALL_DELETES "${PLUGIN_INSTALL_DELETES}")
   if(NOT ${PLUGIN_NAME}_BUNDLE_NAME STREQUAL "")
     # Inno Setup only matches files and wildcards in Source (a directory name
     # alone matches nothing), therefore the contents of the .vamp bundle are
@@ -93,17 +101,18 @@ set(INSTALLER_PATH "${WORKING_DIRECTORY}/Partiels Vamp Plugins-install.exe")
 file(COPY "${INSTALLER_PATH}" DESTINATION "${PVP_OUTPUT_DIRECTORY}")
 
 # Generate one installer per plugin with the windows-plugin-package template.
-# The installer is copied in the Plugins directory of the repository next to
-# the bundle installer.
+# The [InstallDelete] entries of the plugin are written in the
+# <plugin>-InstallDelete.iss file of the package folder, which is included by
+# the template. The installer is copied in the Plugins directory of the
+# repository next to the bundle installer.
 if(PVP_GENERATE_PLUGIN_INSTALLERS)
   foreach(PLUGIN_NAME ${PVP_PLUGINS})
     set(PLUGIN_INSTALLER_PATH "${WORKING_DIRECTORY}/${PLUGIN_NAME}-install.exe")
-    set(ISCC_OPTIONS "/DMyAppVerName=${PVP_BUILD_TAG}" "/DMyPluginVerName=${${PLUGIN_NAME}_PLUGIN_VERSION}" "/DMyPackageFolder=${WORKING_DIRECTORY}" "/DMyPluginName=${PLUGIN_NAME}" "/DMyPluginAltName=${${PLUGIN_NAME}_ALT_NAME}")
+    pvp_get_install_deletes("${PLUGIN_NAME}" "" PLUGIN_INSTALL_DELETES)
+    file(WRITE "${WORKING_DIRECTORY}/${PLUGIN_NAME}-InstallDelete.iss" "${PLUGIN_INSTALL_DELETES}")
+    set(ISCC_OPTIONS "/DMyAppVerName=${PVP_BUILD_TAG}" "/DMyPluginVerName=${${PLUGIN_NAME}_PLUGIN_VERSION}" "/DMyPackageFolder=${WORKING_DIRECTORY}" "/DMyPluginName=${PLUGIN_NAME}")
     if(NOT ${PLUGIN_NAME}_BUNDLE_NAME STREQUAL "")
       list(APPEND ISCC_OPTIONS "/DMyPluginBundleName=${${PLUGIN_NAME}_BUNDLE_NAME}")
-    endif()
-    if(DEFINED ${PLUGIN_NAME}_LEGACY_MODELS AND NOT "${${PLUGIN_NAME}_LEGACY_MODELS}" STREQUAL "")
-      list(APPEND ISCC_OPTIONS "/DMyPluginLegacyModels=${${PLUGIN_NAME}_LEGACY_MODELS}")
     endif()
     execute_process(COMMAND ${ISCC_EXE} ${ISCC_OPTIONS} "/O${WORKING_DIRECTORY}" "${PVP_RESOURCE_DIR}/windows-plugin-package.iss" RESULT_VARIABLE ISCC_RESULT)
     if(NOT ISCC_RESULT EQUAL 0)
