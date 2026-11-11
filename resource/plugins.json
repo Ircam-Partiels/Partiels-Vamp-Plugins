@@ -40,7 +40,7 @@
     "name": "IrcamBeat",
     "maker": "Ircam",
     "gitlabId": 705,
-    "ref": "3.0.0",
+    "ref": "4.0.0",
     "description": "Beat and tempo detection and tracking based on the IrcamBeat library by Geoffroy Peeters and Frédéric Cornu.",
     "features": [
       "Beat Detection",
