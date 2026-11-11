@@ -58,7 +58,7 @@
     "name": "IrcamDescriptor",
     "maker": "Ircam",
     "gitlabId": 714,
-    "ref": "2.0.0",
+    "ref": "3.0.0",
     "description": "Extraction of the spectral and temporal audio descriptors based on the IrcamDescriptor library by Geoffroy Peeters and Frédéric Cornu.",
     "features": [
       "Perceptual Descriptor",
