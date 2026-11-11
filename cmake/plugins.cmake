@@ -14,7 +14,7 @@
 #  - ${<Plugin>_ARCHITECTURES}: the macOS architectures supported by the plugin,
 #  - ${<Plugin>_MANUALS}: the plugin has a manual (if any),
 #  - ${<Plugin>_MANUALS_JOB}: the job of the Ircam Forge 2 whose artifact
-#    contains the manual (Doc by default),
+#    contains the manual (Build::Doc by default),
 #  - ${<Plugin>_LEGACY_MODELS}: the directory of the models of the previous
 #    versions of the plugin outside of the Vamp directory (if any),
 #  - ${<Plugin>_LEGACY_IDENTIFIERS}: the identifiers of the previous versions
@@ -57,7 +57,7 @@ if(NOT PLUGIN_MANUALS_ERROR)
 endif()
 string(JSON PLUGIN_MANUALS_JOB ERROR_VARIABLE PLUGIN_MANUALS_JOB_ERROR GET "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "manualsJob")
 if(PLUGIN_MANUALS_JOB_ERROR)
-  set(PLUGIN_MANUALS_JOB "Doc")
+  set(PLUGIN_MANUALS_JOB "Build::Doc")
 endif()
 set(${PLUGIN_NAME}_MANUALS_JOB "${PLUGIN_MANUALS_JOB}")
 string(JSON PLUGIN_LEGACY_MODELS ERROR_VARIABLE PLUGIN_LEGACY_MODELS_ERROR GET "${PVP_PLUGINS_JSON}" "${PVP_PLUGIN_INDEX}" "legacyModels")

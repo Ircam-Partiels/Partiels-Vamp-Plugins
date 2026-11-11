@@ -1,7 +1,8 @@
 # The generation of the manuals package: the manuals of the plugins are
 # retrieved from the artifacts of the Doc jobs of the Ircam Forge 2 (the name
-# of the job is defined by the manualsJob property of the plugin, e.g.
-# Build::Doc). This generation does not depend on the operating system.
+# of the job is Build::Doc by default and can be overridden by the manualsJob
+# property of the plugin, e.g. Doc). This generation does not depend on the
+# operating system.
 message(STATUS "Preparing Manuals package")
 
 set(WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Manuals")
