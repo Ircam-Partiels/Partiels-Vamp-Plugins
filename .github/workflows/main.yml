@@ -22,6 +22,12 @@ env:
   # requests are limited to 60 per hour.
   GITHUB_TOKEN: ${{ github.token }}
 
+# Each job creates the draft release of the tag or adds its assets to it
+# (softprops/action-gh-release finds the existing draft release of the tag and
+# removes the duplicated draft releases created concurrently by the jobs).
+permissions:
+  contents: write
+
 jobs:
   # Packages, signs and notarizes the plugins for MacOS.
   MacOS:
@@ -92,14 +98,15 @@ jobs:
         name: Partiels-Vamp-Plugins-MacOS
         path: package/
         if-no-files-found: error
-    - name: Release assets
-      uses: actions/upload-artifact@v7.0.2
+    - name: Release
+      uses: softprops/action-gh-release@v3.0.4
       if: ${{ env.is_release == 'true' }}
       with:
-        name: Release-MacOS
-        path: release/
-        if-no-files-found: error
-        retention-days: 1
+        draft: true
+        prerelease: true
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        files: release/*
 
   # Packages the plugins for Windows.
   Windows:
@@ -144,14 +151,15 @@ jobs:
         name: Partiels-Vamp-Plugins-Windows
         path: package/
         if-no-files-found: error
-    - name: Release assets
-      uses: actions/upload-artifact@v7.0.2
+    - name: Release
+      uses: softprops/action-gh-release@v3.0.4
       if: ${{ env.is_release == 'true' }}
       with:
-        name: Release-Windows
-        path: release/
-        if-no-files-found: error
-        retention-days: 1
+        draft: true
+        prerelease: true
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        files: release/*
 
   # Packages the plugins for Linux.
   Linux:
@@ -199,14 +207,15 @@ jobs:
         name: Partiels-Vamp-Plugins-Linux
         path: package/Partiels-Vamp-Plugins-Linux/
         if-no-files-found: error
-    - name: Release assets
-      uses: actions/upload-artifact@v7.0.2
+    - name: Release
+      uses: softprops/action-gh-release@v3.0.4
       if: ${{ env.is_release == 'true' }}
       with:
-        name: Release-Linux
-        path: release/
-        if-no-files-found: error
-        retention-days: 1
+        draft: true
+        prerelease: true
+        fail_on_unmatched_files: true
+        generate_release_notes: true
+        files: release/*
 
   # Retrieves the manuals of the plugins (from the Doc artifacts of the
   # Ircam Forge 2) and generates the plugin list (Partiels-Plugins.json)
@@ -254,38 +263,9 @@ jobs:
         name: Partiels-Vamp-Plugins-Doc
         path: Doc/
         if-no-files-found: error
-    - name: Release assets
-      uses: actions/upload-artifact@v7.0.2
-      if: ${{ env.is_release == 'true' }}
-      with:
-        name: Release-Doc
-        path: release/
-        if-no-files-found: error
-        retention-days: 1
-
-  # Creates the draft release with the assets of all the jobs. The release is
-  # created by a single job: when several jobs create the same draft release
-  # concurrently, the draft releases are duplicated (a draft release cannot be
-  # retrieved by its tag) and the assets are spread over them.
-  Release:
-    # The env context is not available in the condition of a job, therefore
-    # the condition of is_release is repeated.
-    if: ${{ startsWith(github.ref, 'refs/tags/') }}
-    needs: [MacOS, Windows, Linux, Doc]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-    - name: Download the release assets
-      uses: actions/download-artifact@v8.0.2
-      with:
-        pattern: Release-*
-        path: release
-        merge-multiple: true
-    - name: List the release assets
-      run: ls -lR release
     - name: Release
       uses: softprops/action-gh-release@v3.0.4
+      if: ${{ env.is_release == 'true' }}
       with:
         draft: true
         prerelease: true
