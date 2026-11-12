@@ -92,6 +92,7 @@
     "name": "Fcn",
     "maker": "Ircam",
     "gitlabId": 1008,
+    "manualsJob": "Doc",
     "ref": "5.0.0",
     "description": "Monophonic pitch (F0) estimation of speech signals with deep learning models by Luc Ardaillon and Axel Roebel.",
     "features": [
