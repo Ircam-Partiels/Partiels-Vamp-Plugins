@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.19)
 
 # Generates the plugin list (Partiels-Plugins.json) consumed by the plugin
 # manager of Partiels (see the WebReference class of the Partiels source).
+# The list is an object with the minimum version of Partiels compatible with
+# the plugins of the release and the plugins of the release:
+#  {"minimumPartielsVersion": "3.0.0", "plugins": [...]}
+# Partiels ignores the releases that require a newer version of Partiels and
+# uses the newest compatible release (the versions of Partiels prior to 3.0.0
+# only support the legacy format, a list of plugins without minimum version).
 # The properties of the plugins are defined in the resource/plugins.json
 # file (see cmake/plugins.cmake) and the download URLs target the
 # per-plugin installers of the release of this repository that matches the
@@ -23,7 +29,11 @@ cmake_minimum_required(VERSION 3.19)
 #  - PVP_REPOSITORY: the GitHub repository of this package
 #    (by default Ircam-Partiels/Partiels-Vamp-Plugins),
 #  - PVP_OUTPUT_FILE: the path of the generated file
-#    (by default Partiels-Plugins.json next to this script).
+#    (by default Partiels-Plugins.json next to this script),
+#  - PVP_MINIMUM_PARTIELS_VERSION: the minimum version of Partiels compatible
+#    with the plugins of the release, formatted as major.minor.bugfix
+#    (by default the version defined below, to update when the plugins
+#    require a newer version of Partiels).
 #
 # Usage:
 #  cmake -D PVP_BUILD_TAG="1.0.0" -P generate-plugin-list.cmake
@@ -34,11 +44,16 @@ set(PVP_RESOURCE_DIR "${PVP_ROOT_DIR}/resource")
 set(PVP_REPOSITORY "Ircam-Partiels/Partiels-Vamp-Plugins" CACHE STRING "The GitHub repository of the package")
 set(PVP_OUTPUT_FILE "${PVP_ROOT_DIR}/Partiels-Plugins.json" CACHE PATH "The plugin list file to generate")
 set(PVP_BUILD_TAG "" CACHE STRING "The tag of the release of the package")
+set(PVP_MINIMUM_PARTIELS_VERSION "3.0.0" CACHE STRING "The minimum version of Partiels compatible with the plugins")
 
 if(PVP_BUILD_TAG STREQUAL "")
   message(FATAL_ERROR "PVP_BUILD_TAG is not defined (the plugin list cannot be generated).")
 endif()
-message(STATUS "Generate the plugin list of ${PVP_REPOSITORY} ${PVP_BUILD_TAG}")
+if(NOT PVP_MINIMUM_PARTIELS_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$")
+  message(FATAL_ERROR "PVP_MINIMUM_PARTIELS_VERSION " ${PVP_MINIMUM_PARTIELS_VERSION}
+    " is invalid (the version must be formatted as major.minor.bugfix).")
+endif()
+message(STATUS "Generate the plugin list of ${PVP_REPOSITORY} ${PVP_BUILD_TAG} (Partiels ${PVP_MINIMUM_PARTIELS_VERSION} or later)")
 
 include("${PVP_ROOT_DIR}/cmake/plugins.cmake")
 include("${PVP_ROOT_DIR}/cmake/common.cmake")
@@ -122,5 +137,12 @@ foreach(PLUGIN_NAME ${PVP_ALL_PLUGINS})
   math(EXPR PVP_INDEX "${PVP_INDEX} + 1")
 endforeach()
 
-file(WRITE "${PVP_OUTPUT_FILE}" "${PVP_LIST}\n")
+# The plugin list with the minimum version of Partiels compatible with the
+# plugins (see the header of this file).
+set(PVP_DISTRIBUTION "{}")
+pvp_json_encode("${PVP_MINIMUM_PARTIELS_VERSION}" PVP_VALUE)
+string(JSON PVP_DISTRIBUTION SET "${PVP_DISTRIBUTION}" "minimumPartielsVersion" "${PVP_VALUE}")
+string(JSON PVP_DISTRIBUTION SET "${PVP_DISTRIBUTION}" "plugins" "${PVP_LIST}")
+
+file(WRITE "${PVP_OUTPUT_FILE}" "${PVP_DISTRIBUTION}\n")
 message(STATUS "The plugin list has been generated: ${PVP_OUTPUT_FILE}")
