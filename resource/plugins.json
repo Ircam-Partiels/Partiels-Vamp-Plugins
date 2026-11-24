@@ -132,7 +132,7 @@
     "name": "Whisper",
     "maker": "Ircam",
     "repository": "Ircam-Partiels/whisper-vamp-plugin",
-    "ref": "5.0.0",
+    "ref": "5.1.0",
     "description": "Speech recognition generating markers for the words and the syllables of the audio stream with the OpenAI Whisper models.",
     "features": [
       "Whisper"
