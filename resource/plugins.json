@@ -115,7 +115,7 @@
     "name": "VAX",
     "maker": "Ircam",
     "gitlabId": 1161,
-    "ref": "3.0.0",
+    "ref": "3.1.0",
     "description": "Voice alignment based on the VAX (voice aligner) library by Guillaume Doras, Yann Teytaut and Axel Roebel.",
     "features": [
       "VAX - Aligner",
