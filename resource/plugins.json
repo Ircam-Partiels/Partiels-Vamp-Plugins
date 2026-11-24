@@ -163,7 +163,7 @@
     "name": "IPT",
     "maker": "Ircam",
     "repository": "Ircam-Partiels/ipt-vamp-plugin",
-    "ref": "2.1.0",
+    "ref": "2.2.0",
     "description": "Recognition of the instrumental playing techniques with deep learning CNN models by Nicolas Brochec, Joakim Borg and Marco Fiorini.",
     "features": [
       "IPT"
