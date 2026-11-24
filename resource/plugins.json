@@ -148,7 +148,7 @@
     "name": "Crepe",
     "maker": "Ircam",
     "repository": "Ircam-Partiels/crepe-vamp-plugin",
-    "ref": "4.1.0",
+    "ref": "4.2.0",
     "description": "Monophonic pitch tracking based on the CREPE deep convolutional neural network by Jong Wook Kim, Justin Salamon, Peter Li and Juan Pablo Bello.",
     "features": [
       "Crepe"
